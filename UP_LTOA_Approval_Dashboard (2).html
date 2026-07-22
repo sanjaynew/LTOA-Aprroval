@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UP LTOA Approval Tracker — Dashboard</title>
+<style>
+:root{
+  --bg:#fff3e6; --bg2:#ffe0c2; --card:#ffffff; --ink:#3a2712; --sub:#9a6a3a; --line:#ffd9ad;
+  --accent:#f0862a; --accent2:#f0862a22; --blue:#e07b1f; --amber:#d9820b; --red:#c65a2e;
+  --green:#e0791f; --grey:#c79a6d;
+  --y-bg:#ffe6cc; --y-ink:#c1620a; --p-bg:#fff0dc; --p-ink:#b8720a; --n-bg:#fbeee0; --n-ink:#b58a5e;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  color:var(--ink);
+  background:linear-gradient(135deg,#fff8f0,#ffe4c4,#ffd2a0,#ffe4c4,#fff8f0);
+  background-size:300% 300%;
+  animation:gradientShift 18s ease infinite;
+  min-height:100vh;
+}
+@keyframes gradientShift{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(14px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes popIn{
+  from{opacity:0;transform:scale(.94);}
+  to{opacity:1;transform:scale(1);}
+}
+.wrap{max-width:1360px;margin:0 auto;padding:28px 24px 60px;}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;animation:fadeUp .6s ease both;}
+header.top h1{font-size:24px;margin:0 0 4px;letter-spacing:-0.01em;background:linear-gradient(90deg,#e2650a,#f5a24a);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;}
+header.top p{margin:0;color:var(--sub);font-size:13.5px;}
+.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:22px;max-width:560px;}
+.kpi{
+  background:linear-gradient(160deg,#ffffff,#fff5ea);
+  border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  box-shadow:0 2px 10px rgba(224,123,31,.08);
+  transition:transform .25s ease,box-shadow .25s ease;
+  animation:popIn .5s ease both;
+  cursor:default;
+}
+.kpi:nth-child(2){animation-delay:.08s;}
+.kpi:hover{transform:translateY(-4px) scale(1.015);box-shadow:0 10px 24px rgba(224,123,31,.22);border-color:var(--accent);}
+.kpi .label{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.kpi .value{font-size:28px;font-weight:750;color:#c1620a;}
+.kpi .sub{font-size:12px;color:var(--sub);margin-top:4px;}
+.section-title{font-size:16px;font-weight:700;margin:26px 0 10px;color:#a85a12;animation:fadeUp .6s ease both;}
+.section-title:first-of-type{margin-top:0;}
+.timeline-card{
+  background:linear-gradient(160deg,#ffffff,#fff6ec);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;
+  box-shadow:0 2px 12px rgba(224,123,31,.08);animation:fadeUp .6s ease both;
+}
+.mini-gantt{width:100%;border-collapse:collapse;font-size:12.5px;}
+.mini-gantt th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--sub);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;}
+.mini-gantt td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;transition:background .15s ease;}
+.mini-gantt tr{transition:background .15s ease;}
+.mini-gantt tr:hover td{background:#fff2e0;}
+.mini-gantt tr:last-child td{border-bottom:none;}
+table.matrix{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--card);}
+.table-wrap{
+  background:linear-gradient(160deg,#ffffff,#fff6ec);border:1px solid var(--line);border-radius:14px;padding:6px;overflow-x:auto;margin-bottom:26px;
+  box-shadow:0 2px 12px rgba(224,123,31,.08);animation:fadeUp .6s ease both;
+}
+table.matrix th{
+  position:sticky;top:0;background:#fff1de;text-align:left;padding:10px 10px;border-bottom:2px solid var(--line);font-size:11px;
+  text-transform:uppercase;letter-spacing:.03em;color:var(--sub);cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease;
+}
+table.matrix th:hover{background:var(--accent);color:#fff;}
+table.matrix td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+table.matrix tbody tr{transition:background .15s ease,transform .12s ease;}
+table.matrix tbody tr:hover{background:#fff2e0;transform:scale(1.003);}
+.name-cell{font-weight:600;min-width:210px;}
+.sub-cell{font-size:11px;color:var(--sub);font-weight:400;}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:650;text-align:center;min-width:34px;transition:transform .15s ease;}
+.pill:hover{transform:scale(1.1);}
+.pill.Y{background:var(--y-bg);color:var(--y-ink);}
+.pill.Pending{background:var(--p-bg);color:var(--p-ink);}
+.pill.NA{background:var(--n-bg);color:var(--n-ink);}
+.badge-group{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:6px;background:#ffe9d1;color:var(--sub);font-weight:600;}
+.pd-date{font-weight:600;}
+.pd-overdue{color:var(--red);}
+.pd-soon{color:var(--amber);}
+.pd-future{color:var(--blue);}
+.pd-none{color:var(--grey);}
+.footnote{background:#fff3e0;border:1px solid #ffd9ad;border-radius:10px;padding:14px 18px;font-size:12.5px;color:#8a5a1e;margin-top:22px;line-height:1.55;animation:fadeUp .6s ease both;}
+.footnote b{color:#6b3f0e;}
+footer.page{text-align:center;color:var(--sub);font-size:11.5px;margin-top:30px;}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>UP LTOA Approval Tracker</h1>
+      <p>Consolidated view across NREPL, SS7PL (UltraTech) &amp; other solar plants &nbsp;·&nbsp; approval-stage status and timelines</p>
+    </div>
+  </header>
+
+  <section class="kpi-row">
+    <div class="kpi"><div class="label">Consumers / Projects</div><div class="value" id="kpi-total">–</div><div class="sub" id="kpi-total-sub">tracked</div></div>
+    <div class="kpi"><div class="label">Total Capacity</div><div class="value" id="kpi-mw">–</div><div class="sub">MW (where recorded)</div></div>
+  </section>
+
+  <div class="section-title">Approval status matrix — all consumers</div>
+  <div class="table-wrap">
+    <table class="matrix" id="matrix-table"></table>
+  </div>
+
+  <div class="section-title">Dated sub-milestones — NREPL consumers (from "NREPL-approval timeline" sheet)</div>
+  <div class="timeline-card">
+    <table class="mini-gantt" id="mini-gantt"></table>
+  </div>
+
+  <footer class="page">Built from UP_LTOA_Approval_tracker.xlsx · 22 consumers/projects across NREPL, SS7PL &amp; other solar-plant sheets</footer>
+</div>
+
+<script>
+const DATA = {
+  "stages": [
+    "ABT Meter",
+    "SLD",
+    "CEIG",
+    "PPA",
+    "OA-CA",
+    "DISCOM NOC",
+    "LT-2",
+    "EE Nomination",
+    "BPTA/BPWA",
+    "Consumer Registration"
+  ],
+  "consumers": [
+    {
+      "name": "Max Estate (3rd party)",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 3.67,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "NA",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-02-10",
+      "start": null,
+      "deadline": null,
+      "remarks": "STOA power supply",
+      "bd": "Paurush",
+      "consultant": "AR Electro",
+      "assumed": []
+    },
+    {
+      "name": "Apollo Coated Products",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 7.33,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Y",
+        "Consumer Registration": "Y"
+      },
+      "powerDelivery": "2026-02-19",
+      "start": null,
+      "deadline": null,
+      "remarks": "Banking agreement signed",
+      "bd": "Paurush",
+      "consultant": "AR Electro",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "Bisleri",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 1.67,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Y",
+        "Consumer Registration": "Y"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "CSS bank guarantee prepared",
+      "bd": "Amritesh",
+      "consultant": "AR Electro",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "LG Electronics",
+      "group": "NREPL",
+      "discom": "NPCL",
+      "mw": 7.33,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Y",
+        "Consumer Registration": "Y"
+      },
+      "powerDelivery": "2026-05-18",
+      "start": null,
+      "deadline": null,
+      "remarks": "Banking agreement signed",
+      "bd": "Amritesh",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "GK Winding Wires",
+      "group": "NREPL",
+      "discom": "NPCL",
+      "mw": 1.67,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Y",
+        "Consumer Registration": "Y"
+      },
+      "powerDelivery": "2026-06-14",
+      "start": null,
+      "deadline": null,
+      "remarks": "Banking agreement signed",
+      "bd": "Paurush",
+      "consultant": "AR Electro",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "Sify",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 18.0,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Y",
+        "Consumer Registration": "Pending"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "BPTA final signing with UPPTCL pending",
+      "bd": "Amritesh",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "INOX Air Products Pvt Ltd",
+      "group": "NREPL",
+      "discom": "NPCL",
+      "mw": 4.2,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Pending",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "3.7 MW STOA power supply approved 4-30 June",
+      "bd": "Kartikeya",
+      "consultant": "AR Electro",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "International Tobacco Company Ltd",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 2.13,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-08-01",
+      "start": "2026-05-12",
+      "deadline": null,
+      "remarks": "LT-1 applied",
+      "bd": "Paurush",
+      "consultant": "AR Electro",
+      "assumed": []
+    },
+    {
+      "name": "Jackson Engineers Ltd",
+      "group": "NREPL",
+      "discom": "-",
+      "mw": 2.33,
+      "stages": {
+        "ABT Meter": "NA",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-07-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "ABT meter installation under process",
+      "bd": "Paurush",
+      "consultant": "-",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "Haldiram Snacks Food Pvt Ltd",
+      "group": "NREPL",
+      "discom": "PVVNL",
+      "mw": 4.67,
+      "stages": {
+        "ABT Meter": "NA",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": null,
+      "start": null,
+      "deadline": null,
+      "remarks": "ABT sealing certificate pending",
+      "bd": "Vinod",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SKVR Software Solution Pvt Ltd",
+      "group": "NREPL",
+      "discom": "-",
+      "mw": 2.0,
+      "stages": {
+        "ABT Meter": "NA",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": null,
+      "start": null,
+      "deadline": null,
+      "remarks": "STOA power supply planned from 1 Aug",
+      "bd": "-",
+      "consultant": "-",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "UltraTech - Aligarh",
+      "group": "SS7PL (UltraTech)",
+      "discom": "DVVNL",
+      "mw": 20,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Pending",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-02-19",
+      "start": null,
+      "deadline": null,
+      "remarks": "OA-CA capacity (8.5 MVA) to be revised",
+      "bd": "",
+      "consultant": "",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "UltraTech - Dadri",
+      "group": "SS7PL (UltraTech)",
+      "discom": "PVVNL",
+      "mw": 8,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Pending",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "OA-CA capacity (14 MVA) to be revised",
+      "bd": "",
+      "consultant": "",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "UltraTech - Shahjahanpur",
+      "group": "SS7PL (UltraTech)",
+      "discom": "MVVNL",
+      "mw": 12,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "Y",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Pending",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-05-18",
+      "start": null,
+      "deadline": null,
+      "remarks": "OA-CA capacity (12 MVA) to be revised",
+      "bd": "",
+      "consultant": "",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "Sikandrabad",
+      "group": "SS7PL (UltraTech)",
+      "discom": "PVVNL",
+      "mw": null,
+      "stages": {
+        "ABT Meter": "NA",
+        "SLD": "NA",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "Provide meter sealing certificate of S/s end meter",
+      "bd": "",
+      "consultant": "",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "Tanda",
+      "group": "SS7PL (UltraTech)",
+      "discom": "UPPCL-EDD",
+      "mw": null,
+      "stages": {
+        "ABT Meter": "NA",
+        "SLD": "NA",
+        "CEIG": "Y",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "NA",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-06-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "CEIG expires Mar-26; renewal docs pending",
+      "bd": "",
+      "consultant": "",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SS5PL-Pinahat / Elin",
+      "group": "Other Solar Plants",
+      "discom": "PVVNL",
+      "mw": 1.135,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Y",
+        "BPTA/BPWA": "Pending",
+        "Consumer Registration": "Pending"
+      },
+      "powerDelivery": "2026-07-01",
+      "start": null,
+      "deadline": null,
+      "remarks": "LT-2 approved 28-Apr; EE nomination under process",
+      "bd": "Paurush",
+      "consultant": "AR Electro",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SS6PL-Augasi / Wonder Cement",
+      "group": "Other Solar Plants",
+      "discom": "DVVNL",
+      "mw": 6.2,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Pending",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-08-01",
+      "start": "2026-04-30",
+      "deadline": "2026-08-06",
+      "remarks": "LT-1 applied",
+      "bd": "Vinod Sir",
+      "consultant": "AR Electro",
+      "assumed": []
+    },
+    {
+      "name": "SS16PL-Gursarai / Jakson",
+      "group": "Other Solar Plants",
+      "discom": "PVVNL",
+      "mw": 0.8,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "Y",
+        "LT-2": "Y",
+        "EE Nomination": "Pending",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": "2026-08-01",
+      "start": "2026-04-08",
+      "deadline": null,
+      "remarks": "Draft BPTA letters shared with consumer",
+      "bd": "Paurush",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SS8PL-Pailani II / Hilltop",
+      "group": "Other Solar Plants",
+      "discom": "MVVNL",
+      "mw": 2.5,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "NA",
+        "LT-2": "Y",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": null,
+      "start": null,
+      "deadline": null,
+      "remarks": "Fee payment to UPSLDC pending, MRI data pending",
+      "bd": "Amritesh",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SS9PL-Mau / Max-Jaypee Healthcare",
+      "group": "Other Solar Plants",
+      "discom": "PVVNL",
+      "mw": 2.67,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "Y",
+        "DISCOM NOC": "NA",
+        "LT-2": "Y",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": null,
+      "start": null,
+      "deadline": null,
+      "remarks": "Registration pending - consumer lacks DSC",
+      "bd": "Paurush",
+      "consultant": "Topnotch",
+      "assumed": [
+        "PPA"
+      ]
+    },
+    {
+      "name": "SS5PL-Pinahat / CHW",
+      "group": "Other Solar Plants",
+      "discom": "PVVNL",
+      "mw": 3.0,
+      "stages": {
+        "ABT Meter": "Y",
+        "SLD": "NA",
+        "CEIG": "NA",
+        "PPA": "Y",
+        "OA-CA": "NA",
+        "DISCOM NOC": "NA",
+        "LT-2": "Y",
+        "EE Nomination": "NA",
+        "BPTA/BPWA": "NA",
+        "Consumer Registration": "NA"
+      },
+      "powerDelivery": null,
+      "start": null,
+      "deadline": null,
+      "remarks": "Renewed CSS bank guarantee submitted",
+      "bd": "Paurush",
+      "consultant": "-",
+      "assumed": [
+        "PPA"
+      ]
+    }
+  ],
+  "nreplTimeline": {
+    "Bisleri": {
+      "OA-CA": "2025-11-10",
+      "DISCOM NOC": "2026-01-22",
+      "LT-1": "2026-01-27",
+      "LT-2": "2026-02-10",
+      "BPTA EE nomination": "2026-03-19",
+      "BPTA signing": null
+    },
+    "Sify": {
+      "OA-CA": "2026-02-06",
+      "DISCOM NOC": "2026-02-23",
+      "LT-1": "2026-03-16",
+      "LT-2": "2026-04-28",
+      "BPTA EE nomination": null,
+      "BPTA signing": null
+    },
+    "GK Winding Wires": {
+      "OA-CA": "2026-03-17",
+      "DISCOM NOC": "2026-03-17",
+      "LT-1": "2025-12-19",
+      "LT-2": "2026-04-28",
+      "BPTA EE nomination": null,
+      "BPTA signing": null
+    },
+    "LG Electronics": {
+      "OA-CA": "2026-03-31",
+      "DISCOM NOC": "2026-03-20",
+      "LT-1": "2026-02-12",
+      "LT-2": "2026-04-14",
+      "BPTA EE nomination": null,
+      "BPTA signing": null
+    }
+  }
+}
+;
+const STAGE_LABELS = DATA.stages;
+const COLORS = ['#0f6e5c','#2563a8','#b8860b','#7b4fa6','#c2554e','#3f8f7a','#5c7ca8','#a06b1f'];
+
+function fmtDate(s){
+  if(!s) return null;
+  const d = new Date(s);
+  if(isNaN(d)) return s;
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+let activeFilters = {group:'', discom:''};
+
+function applicableStages(c){
+  return STAGE_LABELS.filter(s => c.stages[s] !== 'NA');
+}
+function isFullyApproved(c){
+  const app = applicableStages(c);
+  return app.length>0 && app.every(s => c.stages[s]==='Y');
+}
+function pendingCount(c){
+  return STAGE_LABELS.filter(s => c.stages[s]==='Pending').length;
+}
+function completionPct(c){
+  const app = applicableStages(c);
+  if(app.length===0) return null;
+  const y = app.filter(s=>c.stages[s]==='Y').length;
+  return y/app.length;
+}
+
+function filteredData(){
+  return DATA.consumers.filter(c=>{
+    if(activeFilters.group && c.group!==activeFilters.group) return false;
+    if(activeFilters.discom && c.discom!==activeFilters.discom) return false;
+    return true;
+  });
+}
+
+function animateValue(el, end, decimals, suffix){
+  const start = 0;
+  const duration = 900;
+  const t0 = performance.now();
+  function step(now){
+    const p = Math.min((now - t0) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = start + (end - start) * eased;
+    el.textContent = (decimals ? val.toFixed(decimals) : Math.round(val)) + (suffix||'');
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function renderKPIs(rows){
+  animateValue(document.getElementById('kpi-total'), rows.length, 0, '');
+  document.getElementById('kpi-total-sub').textContent = 'of '+DATA.consumers.length+' total';
+  const mw = rows.reduce((a,c)=> a + (typeof c.mw==='number' ? c.mw : 0), 0);
+  animateValue(document.getElementById('kpi-mw'), mw, 1, '');
+}
+
+
+function renderMiniGantt(){
+  const el = document.getElementById('mini-gantt');
+  const cols = ['OA-CA','DISCOM NOC','LT-1','LT-2','BPTA EE nomination','BPTA signing'];
+  let html = '<tr><th>Consumer</th>' + cols.map(c=>`<th>${c}</th>`).join('') + '</tr>';
+  const nreplConsumers = DATA.consumers.filter(c=>c.group==='NREPL');
+  nreplConsumers.forEach(c=>{
+    const row = DATA.nreplTimeline[c.name] || {};
+    html += '<tr><td class="name-cell">'+c.name+'</td>' + cols.map(col=>{
+      const v = row[col];
+      if(!v) return '<td style="color:var(--grey)">—</td>';
+      if(typeof v === 'string' && isNaN(Date.parse(v))) return '<td style="color:var(--amber);font-size:11.5px">'+v+'</td>';
+      return '<td>'+fmtDate(v)+'</td>';
+    }).join('') + '</tr>';
+  });
+  el.innerHTML = html;
+}
+
+let sortState = {col:null, dir:1};
+function renderMatrix(rows){
+  const el = document.getElementById('matrix-table');
+  let sorted = [...rows];
+  if(sortState.col){
+    sorted.sort((a,b)=>{
+      let av, bv;
+      if(sortState.col==='name'){ av=a.name; bv=b.name; }
+      else if(sortState.col==='group'){ av=a.group; bv=b.group; }
+      else if(sortState.col==='mw'){ av=a.mw||0; bv=b.mw||0; }
+      else { av=a.stages[sortState.col]; bv=b.stages[sortState.col]; }
+      if(av<bv) return -1*sortState.dir;
+      if(av>bv) return 1*sortState.dir;
+      return 0;
+    });
+  }
+  let head = '<tr><th data-col="name">Consumer / Project</th><th data-col="group">Group</th><th data-col="mw">MW</th>';
+  STAGE_LABELS.forEach(s=> head += `<th data-col="${s}">${s}</th>`);
+  head += '</tr>';
+  let body = sorted.map(c=>{
+    let row = `<tr><td class="name-cell">${c.name}<div class="sub-cell">${c.discom!=='-'?c.discom:''}${c.remarks? ' · '+c.remarks:''}</div></td>`;
+    row += `<td><span class="badge-group">${c.group}</span></td>`;
+    row += `<td>${typeof c.mw==='number' ? c.mw.toFixed(2) : '—'}</td>`;
+    STAGE_LABELS.forEach(s=>{
+      const v = c.stages[s];
+      row += `<td><span class="pill ${v}">${v==='NA'?'–':v}</span></td>`;
+    });
+    row += '</tr>';
+    return row;
+  }).join('');
+  el.innerHTML = head + body;
+  el.querySelectorAll('th').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const col = th.dataset.col;
+      sortState.dir = (sortState.col===col) ? -sortState.dir : 1;
+      sortState.col = col;
+      renderMatrix(filteredData());
+    });
+  });
+}
+
+function renderAll(){
+  const rows = filteredData();
+  renderKPIs(rows);
+  renderMatrix(rows);
+}
+
+renderMiniGantt();
+renderAll();
+</script>
+</body>
+</html>
